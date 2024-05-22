@@ -1,0 +1,6 @@
+train: a14-o/train/images 
+val: a14-o/val/images 
+# test: a14-p/test/images 
+ 
+nc: 4 
+names: ['crack_transverse', 'crack_longitudinal', 'potholes', 'spalling'] 
