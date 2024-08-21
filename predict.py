@@ -7,16 +7,19 @@ import pandas as pd
 import os, json
 
 # inputs
-model = YOLO('./runs/segment/a14-o-3/weights/best.pt')      # trained pavement model
-test_dir = './datasets/a14-o/val/'
-img_path = os.path.join(test_dir,'images')
-output_fn = os.path.join(test_dir,'a14-o-3_val_infer3.json')
+model = YOLO('./runs/segment/tcr-nb-230514/weights/best.pt')      # trained pavement model
+home_dir = os.path.expanduser("~")
+# test_dir = './datasets/a14-o/val/'
+test_dir = os.path.join(home_dir, 'PTrans/orthoimage/images/SA-EB-240718')
+# img_path = os.path.join(test_dir,'images')
+img_path = test_dir
+output_fn = os.path.join(test_dir,'SA-EB-240718_infer.json')
 # input image selection
 sel_image = True
-cat_weight = {1: 0, 2: 0, 3: 5, 4: 1}
+cat_weight = {1: 0, 2: 0, 3: 5, 4: 5, 5:0}
 # input visualisation
 vis_pred = True
-output_vis_dir = os.path.join(test_dir, 'vis_a14-o-3_val_infer3')
+output_vis_dir = os.path.join(test_dir, 'vis_SA-EB-240718_infer')
 
 # Run batched inference on a list of images
 results = model(img_path, stream=True, conf=0.05)      # return a list of Results objects
@@ -25,6 +28,7 @@ results = model(img_path, stream=True, conf=0.05)      # return a list of Result
 images = pd.DataFrame(columns=["id", "file_name", "width", "height"])
 df_columnsTitles = ["id", "image_id", "category_id", "bbox", "area", "segmentation", "score"]
 df = pd.DataFrame(columns=df_columnsTitles)
+category = pd.DataFrame(columns=["category_id", "name"])  # Initialize category as an empty DataFrame
 
 # Process results list
 # can be done by model.predict(<img/path>, save=True, imgsz=320, conf=0.5) but try this to avoid the yolo txt formats
@@ -37,9 +41,17 @@ for i, result in enumerate(results):
         continue
     
     # set categories in the first run
-    if 'category' not in locals() or 'category' not in globals():
+    if category.empty:
         category_list = [{"category_id": k+1, "name": v} for k, v in result.names.items()]
         category = pd.DataFrame(category_list, columns=["category_id", "name"])
+    
+    # extract masks from result
+    if result_sum:
+        result_mask = result.masks
+        mask_list = []
+        for x in result_mask.xy:
+            seg_dict = {"x": x[:,0], "y": x[:,1]}
+            mask_list.append(seg_dict)
     
     # add image to images df
     img_name = os.path.basename(result.path)
@@ -49,7 +61,8 @@ for i, result in enumerate(results):
     # add annotations to df
     for j, obj in enumerate(result_sum):
         bbox = ju.process_bbox(obj['box'])
-        segment = ju.process_segment(obj['segments'])
+        # segment = ju.process_segment(obj['segments'])
+        segment = ju.process_segment(mask_list[j])
         area = ju.calculate_area(segment)
         df.loc[len(df)] = {"id": len(df)+1, "image_id": i+1, "category_id": obj['class']+1, "bbox": bbox, "area": area, "segmentation": segment, "score": obj['confidence']}
 
