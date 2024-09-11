@@ -9,20 +9,19 @@ import os, json
 # inputs
 model = YOLO('./runs/segment/tcr-nb-230514/weights/best.pt')      # trained pavement model
 home_dir = os.path.expanduser("~")
-# test_dir = './datasets/a14-o/val/'
-test_dir = os.path.join(home_dir, 'PTrans/orthoimage/images/SA-EB-240718')
-# img_path = os.path.join(test_dir,'images')
+test_dir = os.path.join(home_dir, 'PTrans/orthoimage/images/SA-EB-240718')        # the Project Directory
+# img_path = os.path.join(test_dir,'images')                                        # where the images to be inferred labels on are
 img_path = test_dir
-output_fn = os.path.join(test_dir,'SA-EB-240718_infer.json')
+output_fn = os.path.join(test_dir,'SA-EB-240718_infer.json')                        # the filename of the output pseudolabels (in COCO json format)
 # input image selection
-sel_image = True
-cat_weight = {1: 0, 2: 0, 3: 5, 4: 5, 5:0}
+sel_image = True            # True if you would like to calculate informative scores to sample images for review
+cat_weight = {1: 0, 2: 0, 3: 5, 4: 5, 5:0}        # Cat 1: crack_transverse, 2: crack_longitudinal, 3: potholes, 4: patches
 # input visualisation
-vis_pred = True
-output_vis_dir = os.path.join(test_dir, 'vis_SA-EB-240718_infer')
+vis_pred = True                # True if you would like to visualise the predictions
+output_vis_dir = os.path.join(test_dir, 'vis_SA-EB-240718_infer')            # Directory to output the images with predictions
 
 # Run batched inference on a list of images
-results = model(img_path, stream=True, conf=0.05)      # return a list of Results objects
+results = model(img_path, stream=True, conf=0.05)      # return a list of Results objects. Adjust the confidence level if needed
 
 # create dataframes
 images = pd.DataFrame(columns=["id", "file_name", "width", "height"])
