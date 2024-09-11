@@ -10,3 +10,11 @@ Apart from simple training and inference codes for instance segmentation tasks, 
 * output the annotated images (set ```vis_pred == True```)
 
 These will be useful in selecting a small batch of interesting images from a large dataset for annotation.
+
+# Main Packages to install
+
+The operations are assumed to be performed in an Anaconda environment with Python. Codes in this repo require several packages to be installed (via pip).
+```
+* ultralytics      # the main package for YOLOv8 train and predict
+* pycocotools      # for merging masks and converting between masks and polygons
+```
